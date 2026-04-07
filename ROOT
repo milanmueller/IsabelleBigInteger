@@ -4,3 +4,4 @@ session BigInt_LLVM = Isabelle_LLVM +
         "lib"
     theories
         "src/LLVM_CodeGen"
+        "lib/IICF_More_Array"
