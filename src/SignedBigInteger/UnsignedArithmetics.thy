@@ -312,13 +312,14 @@ lemma signed_big_int_mult_school_cond_eq_big_int_mult_school_cond:
 
 definition signed_big_int_mult_school_body :: "signed_big_int \<Rightarrow> signed_big_int \<Rightarrow> (big_int \<times> nat) \<Rightarrow> (big_int \<times> nat) nres"
   where "signed_big_int_mult_school_body ai bi \<equiv> (\<lambda>(ci, idx). do {
+    ASSUME (sepref_sorry_that(idx+1 < max_snat 64));
     let aidx = get_or_zero_fst ai idx;
-    if aidx = 0 then 
-      RETURN (ci, idx + 1)
+    if aidx = 0 then
+      RETURN (ci, idx + 1) 
     else do {
       aidx_bi_prod \<leftarrow> signed_big_int_mult_limb bi aidx;
       ai_bi_prod \<leftarrow> big_int_rshift idx aidx_bi_prod;
-      ci \<leftarrow> big_int_add ci ai_bi_prod;
+      ci \<leftarrow> big_int_add ci ai_bi_prod; 
       RETURN (ci, idx + 1)
     }
 })"
