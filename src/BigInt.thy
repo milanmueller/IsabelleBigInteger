@@ -1485,6 +1485,7 @@ definition big_int_mult_school_cond :: "big_int \<Rightarrow> big_int \<Rightarr
 
 definition big_int_mult_school_body :: "big_int \<Rightarrow> big_int \<Rightarrow> (big_int \<times> nat) \<Rightarrow> (big_int \<times> nat) nres"
   where "big_int_mult_school_body ai bi \<equiv> (\<lambda>(ci, idx). do {
+    ASSUME (sepref_sorry_that(idx+1 < max_snat 64));
     let aidx = get_or_zero ai idx;
     if aidx = 0 then 
       RETURN (ci, idx + 1)
@@ -1497,6 +1498,7 @@ definition big_int_mult_school_body :: "big_int \<Rightarrow> big_int \<Rightarr
 })"
 
 
+
 definition big_int_mult_school :: "big_int \<Rightarrow> big_int \<Rightarrow> big_int nres"
   where "big_int_mult_school ai bi \<equiv> do {
     (ci, idx) \<leftarrow> WHILEIT 
@@ -1506,6 +1508,7 @@ definition big_int_mult_school :: "big_int \<Rightarrow> big_int \<Rightarrow> b
       (big_int0, 0);
     RETURN ci
   }"
+
 
 lemma big_int_mult_school_correct: 
   "(ai, a) \<in> big_int_rel \<Longrightarrow> (bi, b) \<in> big_int_rel \<Longrightarrow> big_int_mult_school ai bi \<le> \<Down> big_int_rel

@@ -87,4 +87,8 @@ sepref_def signed_big_int_mult_school_impl is "uncurry signed_big_int_mult_schoo
   apply (annot_snat_const size_t)
   by sepref
 
+(*
+export_llvm signed_big_int_mult_school_impl file "/tmp/mult.ll"
+*)
+
 end

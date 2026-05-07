@@ -1,5 +1,5 @@
 theory BigIntSlice 
-  imports "Karatsuba" "IICF_More_Array" "HOL-Library.More_List"
+  imports "Karatsuba" "../lib/IICF_More_Array" "HOL-Library.More_List"
 begin
 
 type_synonym 'a bis = "('a list \<times> nat)" 

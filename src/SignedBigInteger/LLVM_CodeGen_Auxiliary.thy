@@ -137,6 +137,8 @@ sepref_def get_or_zero_fst_impl
   supply [simp] = length_fst_def
   by sepref
 
+section "Inversion of Signed Big Integers"
+
 definition signed_big_int_inv :: "signed_big_int \<Rightarrow> signed_big_int" where
   "signed_big_int_inv ai = (let (lsa,\<sigma>\<^sub>a) = ai in (lsa, \<not>\<sigma>\<^sub>a))"
 
@@ -154,6 +156,8 @@ lemma signed_big_int_inv_impl_refine[sepref_fr_rules]:
   apply vcg_all
   oops
   (* Not sure if we will even need subtraction, so i stop here for now *)
+
+  (* We can just reimplement addition with flipped *)
 
 
 end

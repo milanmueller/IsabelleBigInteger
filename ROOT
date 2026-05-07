@@ -2,6 +2,7 @@ session BigInt_LLVM = Isabelle_LLVM +
     directories
         "src"
         "lib"
+        "src/SignedBigInteger"
     theories
-        "src/LLVM_CodeGen"
-        "lib/IICF_More_Array"
+        "src/SignedBigInteger/Basic"
+        "src/SignedBigInteger/Arithmetics"
