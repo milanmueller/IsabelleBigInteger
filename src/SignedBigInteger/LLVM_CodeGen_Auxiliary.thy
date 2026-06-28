@@ -1,4 +1,4 @@
-﻿theory LLVM_CodeGen_Auxiliary
+theory LLVM_CodeGen_Auxiliary
   imports Basic "../LLVM_CodeGen" 
 begin
 text "This file includes some required low-level implementations of essential functions on signed big ints.

@@ -1,4 +1,4 @@
-﻿theory UnsignedArithmetics
+theory UnsignedArithmetics
   imports Basic LLVM_CodeGen_Auxiliary
 begin
 
