@@ -10,10 +10,17 @@ definition "sbi_assn \<equiv> hr_comp sbi_aux_assn signed_big_int_rel"
 sepref_def \<sigma>_impl is "RETURN o \<sigma>" :: "sbi_aux_assn\<^sup>k \<rightarrow>\<^sub>a bool1_assn"
   unfolding \<sigma>_def snd_def
   by sepref
-
 (*you need this for the base operations*)
 definition length_fst where
   \<open>length_fst a = length (fst a)\<close>
+
+lemmas [sepref_bounds_simps] = length_fst_def
+
+(* probably not needed *)
+(* lemma sbi_aux_assn_length_fst_boundD[sepref_bounds_dest]:
+ *   "rdomp sbi_aux_assn a \<Longrightarrow> length_fst a < max_snat 64"
+ *   unfolding length_fst_def
+ *   by (cases a) (auto dest: al_assn_boundD) *)
 
 definition length_fst_impl :: \<open>(64 word \<times> 64 word \<times> 64 word ptr) \<times> 1 word \<Rightarrow> 64 word llM\<close> where
   \<open>length_fst_impl = (\<lambda>al. 

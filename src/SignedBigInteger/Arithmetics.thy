@@ -1,7 +1,103 @@
 theory Arithmetics 
   imports Basic UnsignedArithmetics
 begin
-  
+
+section \<open>Inversion\<close>
+
+definition \<open>sbi_inv \<equiv> \<lambda>(l,\<sigma>). if l = [] then (l,\<sigma>) else (l,\<not>\<sigma>)\<close>
+
+lemma sbi_inv_correct: \<open>signed_big_int_\<alpha> $ sbi_inv x = - signed_big_int_\<alpha> x\<close>
+  by (smt (verit, ccfv_threshold) APP_def \<sigma>_def limbs_of_def prod.simps(2)
+    sbi_inv_def signed_big_int_to_int_def signed_big_int_zero_\<alpha>
+    split_pairs2)
+
+lemma sbi_inv_ref:
+  \<open>(RETURN o sbi_inv, RETURN o uminus) \<in> signed_big_int_rel \<rightarrow>\<^sub>f \<langle>signed_big_int_rel\<rangle>nres_rel\<close>
+  apply (intro frefI nres_relI)
+  apply (auto simp: signed_big_int_rel_def in_br_conv)
+  using sbi_inv_correct apply auto[1]
+  by (smt (verit, ccfv_SIG) fst_conv limbs_of_def old.prod.case sbi_inv_def
+      signed_big_int_invar_def)
+
+section "Comparisons"
+
+definition \<open>signed_big_int_eq a b \<equiv> doN{
+    if \<sigma> a \<noteq> \<sigma> b \<or> length_fst a \<noteq> length_fst b then RETURN False
+    else doN {
+      ASSERT(length_fst a = length_fst b);
+      (_, eq) \<leftarrow> WHILEIT 
+        (\<lambda>(i, eq). i \<le> length_fst a \<and> (eq \<longleftrightarrow> take i (fst a) = take i (fst b)))
+        (\<lambda>(i, eq). i < length_fst a \<and> eq)
+        (\<lambda>(i, eq). doN {
+            ASSERT(i < length_fst a);
+            if get_or_zero_fst a i \<noteq> get_or_zero_fst b i then RETURN (i+1, False)
+            else RETURN (i+1, True) 
+        }) (0, True);
+      RETURN eq
+    } 
+}\<close>
+
+lemma signed_big_int_eq_correct:
+  \<open>signed_big_int_eq a b \<le> SPEC (\<lambda>r. r \<longleftrightarrow> a = b)\<close>
+  unfolding signed_big_int_eq_def
+  apply (refine_vcg WHILEIT_rule[where R = \<open>measure (\<lambda>(i,_). length_fst a - i)\<close>])
+  apply (clarsimp_all simp: take_Suc_conv_app_nth)
+  subgoal by (auto simp: take_Suc_conv_app_nth get_or_zero_fst_def get_or_zero_def length_fst_def)
+  subgoal by linarith
+  subgoal by (metis get_or_zero_fst_alt_def length_fst_def take_Suc_conv_app_nth)
+  subgoal by linarith
+  subgoal 
+    apply auto
+    apply (simp add: \<sigma>_def length_fst_def prod_eqI)
+    by (simp add: \<sigma>_def length_fst_def prod_eq_iff)
+  done
+
+lemma signed_big_int_eq_refine:
+  \<open>(uncurry signed_big_int_eq, uncurry (RETURN oo (=)))
+     \<in> signed_big_int_rel \<times>\<^sub>r signed_big_int_rel \<rightarrow>\<^sub>f \<langle>bool_rel\<rangle>nres_rel\<close>
+  apply (intro frefI nres_relI)
+  apply clarsimp
+  apply (rule order_trans[OF signed_big_int_eq_correct])
+  apply refine_vcg
+  by (metis in_br_conv signed_big_int_rel_def signed_big_int_to_int_unique)
+
+text \<open>Sepref's id-phase pattern rule @{thm op_neq_pat} rewrites \<open>a \<noteq> b\<close> into \<open>op_neq a b\<close>,
+  so every type with a custom eq-operator also needs an @{const op_neq} implementation.\<close>
+
+definition signed_big_int_neq :: "signed_big_int \<Rightarrow> signed_big_int \<Rightarrow> bool nres" where
+  "signed_big_int_neq a b = doN { eq \<leftarrow> signed_big_int_eq a b; RETURN (\<not>eq) }"
+
+lemma signed_big_int_neq_correct:
+  \<open>signed_big_int_neq a b \<le> SPEC (\<lambda>r. r \<longleftrightarrow> a \<noteq> b)\<close>
+  using signed_big_int_eq_correct[of a b]
+  unfolding signed_big_int_neq_def
+  by (auto simp: pw_le_iff refine_pw_simps)
+
+lemma signed_big_int_neq_refine:
+  \<open>(uncurry signed_big_int_neq, uncurry (RETURN oo op_neq))
+     \<in> signed_big_int_rel \<times>\<^sub>r signed_big_int_rel \<rightarrow>\<^sub>f \<langle>bool_rel\<rangle>nres_rel\<close>
+  apply (intro frefI nres_relI)
+  apply clarsimp
+  apply (rule order_trans[OF signed_big_int_neq_correct])
+  apply refine_vcg
+  by (metis in_br_conv signed_big_int_rel_def signed_big_int_to_int_unique)
+
+section "Constants"
+
+definition signed_big_int0 :: signed_big_int where
+  "signed_big_int0 \<equiv> ([], False)"
+
+lemma signed_big_int0_refine: "(signed_big_int0, 0) \<in> signed_big_int_rel"
+  by (auto simp: signed_big_int0_def signed_big_int_rel_def in_br_conv
+      signed_big_int_zero_\<alpha> signed_big_int_invar_def \<sigma>_def limbs_of_def)
+
+definition signed_big_int1 :: signed_big_int where
+  "signed_big_int1 \<equiv> ([1], False)"
+
+lemma signed_big_int1_refine: "(signed_big_int1, 1) \<in> signed_big_int_rel"
+  by (auto simp: signed_big_int1_def signed_big_int_rel_def in_br_conv
+      signed_big_int_one_\<alpha> signed_big_int_invar_def \<sigma>_def limbs_of_def)
+
 section "Arithmetic Operations"
 
 subsection "Addition"
@@ -237,6 +333,12 @@ next
   with signed_big_int_add_\<sigma>_neq_correct[OF assms False] show ?thesis by simp
 qed
 
+lemma signed_big_int_add_refine:
+  \<open>(uncurry signed_big_int_add, uncurry (RETURN oo (+)))
+  \<in> signed_big_int_rel \<times>\<^sub>r signed_big_int_rel \<rightarrow>\<^sub>f \<langle>signed_big_int_rel\<rangle>nres_rel\<close>
+  by (intro frefI nres_relI)
+     (auto simp: uncurry_def intro!: signed_big_int_add_correct)
+
 section "Subtraction"
 text "With signed addition, subtraction can easily be expressed"
 
@@ -279,5 +381,11 @@ lemma signed_big_int_mult_school_correct:
   subgoal for \<sigma>\<^sub>a \<sigma>\<^sub>b r
     by (simp add: signed_rel_from_int_pos)
   done
+
+lemma signed_big_int_mult_school_refine:
+  \<open>(uncurry signed_big_int_mult_school, uncurry (RETURN oo (*)))
+  \<in> signed_big_int_rel \<times>\<^sub>r signed_big_int_rel \<rightarrow>\<^sub>f \<langle>signed_big_int_rel\<rangle>nres_rel\<close>
+  by (intro frefI nres_relI)
+     (auto simp: uncurry_def intro!: signed_big_int_mult_school_correct)
 
 end

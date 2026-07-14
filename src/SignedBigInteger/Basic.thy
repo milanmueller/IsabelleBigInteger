@@ -1,5 +1,5 @@
 theory Basic
-  imports "../BigInt"
+  imports "../BigInt" 
 begin
 
 text "Basic Types and definitions for signed big integers"
@@ -21,6 +21,9 @@ definition int_to_signed_big_int :: "int \<Rightarrow> signed_big_int" where
   "int_to_signed_big_int x = (if x < 0 then (nat_to_big_int $ nat (abs x), True) else (nat_to_big_int $ nat x, False))"
 
 lemma signed_big_int_zero_\<gamma>: "int_to_signed_big_int 0 = ([], False)"
+  by eval
+
+lemma signed_big_int_one_\<alpha>: "signed_big_int_to_int ([1], False) = 1"
   by eval
 
 text "Analogously to unsigned integers, we define a relation of signed big integers and the builtin integers.
@@ -224,6 +227,6 @@ proof -
     by auto
   then show ?thesis
     by (simp add: assms(3) brI limbs_of_def signed_big_int_invar_def signed_big_int_rel_def val)
-qed    
+qed 
 
 end
