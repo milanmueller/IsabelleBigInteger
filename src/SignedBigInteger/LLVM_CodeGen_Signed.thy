@@ -33,6 +33,24 @@ sepref_def signed_big_int1_impl is "uncurry0 (RETURN signed_big_int1)"
   unfolding signed_big_int1_alt
   by sepref
 
+subsection "Single-Limb Construction"
+
+text \<open>A signed big int from a single limb, i.e. the refinement of \<open>of_nat\<close> for
+  nat values that fit one limb. The zero case is special: the invariant demands
+  the unique representation \<open>([], False)\<close>.\<close>
+
+definition sbi_of_limb :: "limb \<Rightarrow> signed_big_int" where
+  "sbi_of_limb l = (if l = 0 then ([], False) else ([l], False))"
+
+lemma sbi_of_limb_alt:
+  "sbi_of_limb l = (if l = 0 then (op_al_empty TYPE(size_t), False) else (op_al_empty TYPE(size_t) @ [l], False))"
+  by (simp add: sbi_of_limb_def)
+
+sepref_def sbi_of_limb_impl is "RETURN o sbi_of_limb"
+  :: "limb_assn\<^sup>k \<rightarrow>\<^sub>a sbi_aux_assn"
+  unfolding sbi_of_limb_alt
+  by sepref
+
 section "Unsigned Arithmetics"
 
 sepref_def signed_big_int_add_loop_impl is "uncurry2 signed_big_int_add_loop"
@@ -131,6 +149,20 @@ text \<open>Now we register our implementations to refine HOL integers through @
 
 sepref_register "0 :: int"
 sepref_register "1 :: int"
+sepref_register "of_nat :: nat \<Rightarrow> int"
+
+text \<open>\<open>sbi_of_limb\<close> refines \<open>of_nat\<close> for single-limb values. The abstract nat is
+  related through \<open>snat_rel\<close> (not \<open>unat_rel\<close>) so that literals like \<open>10\<close> in client
+  programs can be annotated uniformly with \<open>annot_snat_const\<close> alongside snat loop
+  indices.\<close>
+
+lemma sbi_of_limb_refine:
+  "(RETURN o sbi_of_limb, RETURN o (of_nat :: nat \<Rightarrow> int))
+    \<in> snat_rel' TYPE(limb\<^sub>w) \<rightarrow>\<^sub>f \<langle>signed_big_int_rel\<rangle>nres_rel"
+  apply (intro frefI nres_relI)
+  by  (clarsimp simp: snat_rel_def snat.rel_def in_br_conv sbi_of_limb_def
+    signed_big_int_rel_def signed_big_int_to_int_def signed_big_int_invar_def
+    \<sigma>_def limbs_of_def limb_nat_def snat_eq_unat snat_invar_def)
 
 context
   notes [fcomp_norm_unfold] = sbi_assn_def[symmetric]
@@ -157,6 +189,9 @@ lemmas signed_big_int_mult_school_hnr[sepref_fr_rules] =
 
 lemmas sbi_inv_hnr[sepref_fr_rules] =
   sbi_inv_impl.refine[FCOMP sbi_inv_ref]
+
+lemmas sbi_of_limb_hnr[sepref_fr_rules] =
+  sbi_of_limb_impl.refine[FCOMP sbi_of_limb_refine]
 
 end
 
