@@ -193,12 +193,16 @@ lemmas sbi_inv_hnr[sepref_fr_rules] =
 lemmas sbi_of_limb_hnr[sepref_fr_rules] =
   sbi_of_limb_impl.refine[FCOMP sbi_of_limb_refine]
 
+
 end
 
-text \<open>Deallocation of sbi temporaries (needed whenever a synthesis creates
-  intermediate sbi values, e.g. in \<open>n + m \<noteq> 0\<close>).\<close>
 schematic_goal sbi_assn_free[sepref_frame_free_rules]: "MK_FREE sbi_assn ?fr"
   unfolding sbi_assn_def
   by (rule MK_FREE_hrcompI mk_free_pair al_assn_free mk_free_pure mk_free_is_pure)+
+
+definition sbi_free :: \<open>(64 word \<times> 64 word \<times> 64 word ptr) \<times> 1 word \<Rightarrow> unit llM\<close> where [llvm_code, llvm_inline]:
+  \<open>sbi_free \<equiv> \<lambda>(m, sbi). doM { arl_free m; Mreturn () }\<close>
+
+lemmas sbi_free_rule[sepref_frame_free_rules] = sbi_assn_free[folded sbi_free_def]
 
 end
