@@ -151,6 +151,11 @@ sepref_register "0 :: int"
 sepref_register "1 :: int"
 sepref_register "of_nat :: nat \<Rightarrow> int"
 
+text \<open>Tell the constraint solver that \<open>sbi_assn\<close> is not pure (cf. the analogous
+  declaration for \<open>bi_assn\<close>): otherwise \<open>\<^sup>d\<close>-arguments are "recovered" via
+  \<open>hn_val UNIV\<close> instead of being freed.\<close>
+lemmas [safe_constraint_rules] = CN_FALSEI[of is_pure sbi_assn]
+
 text \<open>\<open>sbi_of_limb\<close> refines \<open>of_nat\<close> for single-limb values. The abstract nat is
   related through \<open>snat_rel\<close> (not \<open>unat_rel\<close>) so that literals like \<open>10\<close> in client
   programs can be annotated uniformly with \<open>annot_snat_const\<close> alongside snat loop
