@@ -30,6 +30,11 @@ text "Analogously to unsigned integers, we define a relation of signed big integ
   Also we require s = 0 for xs = [], i.e. we only allow one representation of 0."
 definition "signed_big_int_invar si \<equiv> \<not>(\<sigma> si) \<and> limbs_of si = [] \<or> limbs_of si \<noteq> [] \<and> last $ limbs_of si \<noteq> 0"
 
+(* Alternative formulation for thesis *)
+lemma signed_big_int_thesis: \<open>signed_big_int_invar (l,s) \<longleftrightarrow> (big_int_invar l \<and> (l=[] \<longrightarrow> \<not>s))\<close>
+  unfolding signed_big_int_invar_def big_int_invar_def limbs_of_def \<sigma>_def
+  by auto
+
 lemma sigma_impl_int_sign:
   assumes "signed_big_int_invar x"
     shows "\<sigma> x \<longleftrightarrow> signed_big_int_\<alpha> x < 0"

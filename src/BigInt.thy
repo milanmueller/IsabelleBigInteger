@@ -378,10 +378,8 @@ lemma big_int_rel_length_log: "(ai, a) \<in> big_int_rel \<Longrightarrow> lengt
 lemma big_int_rel_size_leq: "(ai, a) \<in> big_int_rel \<Longrightarrow> (a < limb_sz ^ l) \<longleftrightarrow> (length ai \<le> l)"
   unfolding big_int_rel_length_log
   using size_log_pow_lt
-  using floorlog_le_iff limb_sz_gt(1) size_log_def 
-  apply simp
-  sorry
-  (* by presburger works, but not for building the theory? *)
+  using floorlog_le_iff limb_sz_gt(1) size_log_def
+  by (metis floorlog_leD less_eq_nat.simps(1))
 
 lemma big_int_\<alpha>_length_gt2: "big_int_\<alpha> ai \<ge> limb_sz \<Longrightarrow> length ai \<ge> 2"
 proof (cases "length ai \<ge> 2")
